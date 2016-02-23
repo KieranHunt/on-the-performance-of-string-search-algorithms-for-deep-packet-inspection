@@ -73,11 +73,11 @@ The time complexities in Table \ref{table-algorithms} should only serve as a bas
 
 As mentioned previously, a system was developed to allow accurate running and performance measurement of each of the implemented algorithms (in Table \ref{table-algorithms}). The system takes a json file as input (See Listing \ref{listing-testConfiguration.json}). For the test, the following configuration was chosen:
 \begin{itemize}
-  \item algorithms
-  \item rules
-  \item inputs
-  \item times
-  \item threadCount
+  \item \texttt{algorithms} - a list of all implemented Algorithms (See Table \ref{table-algorithms}) 
+  \item \texttt{rules} - string-based rules covering the twenty most popular websites \citep{alexa2016} - just their domain names were taken - as well as the twenty most popular words in the English language \citep{oed2016}.
+  \item \texttt{inputs} - a dataset of DNS traffic was selected and a subset of 10000 packets was extracted. This was labeled \texttt{smallcapture.pcap}. A second Input was also selected, this is the complete \textit{Alice in Wonderland} by Lewis Carol. This Input was labeled \texttt{alice.txt}. The system treats text and pcap input files differently. Text input files are used to create a single Input object representing all information in that file. Pcap input files are split up into individual packet objects and each packet represents a single Input.
+  \item \texttt{times} - the tests were each run 20 times.
+  \item \texttt{threadCount} - drastic speed increases are made possible by splitting the work of the Algorithms across multiple threads. The machine used to perform the test has 24 useable cores and so a max \texttt{threadCount} of 18 was chosen to best make use of those cores.
 \end{itemize}
 
 
@@ -112,7 +112,30 @@ As mentioned previously, a system was developed to allow accurate running and pe
 
 \section{Results}
 
+The test generated 3400340 result objects. Each result object looked very similar to Listing \ref{listing-testresult}. Containing information about the start and end times (in nanoseconds), the elapsed time (the end time - the start time), the rules searched for, the locations that rules were matched at, the algorithm used, the input file, the input ID, the run number and the ID of that run.
 
+\begin{lstlisting}[caption = {Sample test Result}, label = {listing-testresult}]
+[
+    {
+        "start": 206079193307938,
+        "end": 206079207132342,
+        "elapsed": 13824404,
+        "rules": [
+            "time",
+            "person",
+            ...
+            "msn"
+        ],
+        "locations": [1, 2, ..., n],
+        "algorithm": "Smith",
+        "inputFile": "smallcapture.pcap",
+        "inputID": "bf75faa5",
+        "runNumber": 1,
+        "runId": "d9b4a28aefbd"
+    },
+    ...
+]
+\end{lstlisting}
 
 \section{Analysis}
 
