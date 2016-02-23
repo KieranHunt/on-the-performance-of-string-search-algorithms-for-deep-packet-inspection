@@ -1,0 +1,124 @@
+\documentclass[11pt]{article}
+\usepackage[round]{natbib}
+\usepackage{graphicx}
+\usepackage{listings}
+
+\begin{document}
+
+\title{On the Performance of String Search Algorithms for Deep Packet Inspection}
+\author{Kieran Hunt}
+\date{\today}
+\maketitle
+
+\section{Introduction}
+
+In Deep Packet Inspection today, systems are generally built on top of expensive custom hardware. Making changes to such a system (such as horizontally scaling) is often arduous, time consuming and expensive. Deep Packet Inspection via software means is usually slower but does provide some benefit: adding or removing capacity to perform inspection is often as simple as adding or removing hosts doing the inspection. String search algorithms have long been of interest to the field of computer science and as a result a substantial number of search algorithms exist. This paper looks to ask which of these string search algorithms perform best at deep packet inspection and how does their performance compare to that of their intended design.
+
+Relevant Deep Packet Inspection terminology is as follows:
+\begin{itemize}
+  \item \textbf{Packet}: Data representing a TCP/IP stack packet. This includes information from the network to the application layer.
+  \item \textbf{Packet Capture File (PCAP)}: A file containing packets. These packets were generally captured by recording a network interface.
+  \item \textbf{Deep Packet Inspection (DPI)}: the process by which a packet, or stream of packets, is analysed for the presence of predefined patterns.
+\end{itemize}
+
+In order to properly test these string search algorithms, a system was designed to accurately compare each algorithm for inspection of both packet captures as well as textual inputs such as text files.
+
+In the system for comparing string search algorithms, the following terminology is relevant:
+\begin{itemize}
+  \item \textbf{Input}: This is the interface through which the system reads in either the packets or textual Input. Algorithms can request a single byte from the input, the length of the Input or the entire Input itself.
+  \item \textbf{Rule}: The system searches through the input for a given Rule. Rules are very similar to input in that a single byte of information, the length of the rule or the entire rule itself can be requested. 
+  \item \textbf{Algorithm}: This represents a string search algorithm and is the means by which the system interacts with all of the algorithms. It has a single interface for performing a search where the Input is supplied and a Result is returned.
+  \item \textbf{Result}: This represents the result of the inspection of a single Input. In it is the start and end times of the inspection, the Rules, Input and the location (if any) in the Input where the Rules were matched.
+\end{itemize}
+
+Each of the string search algorithms have known performance (algorithm complexity known as big O) usually related to the length of the string being searched. The results of the following experiments should follow the predicted complexity of string search algorithms. Algorithm complexity often only provides insight into large variations in Input length (differing orders of magnitude) whereas in packet data has a limited range of Input lengths and so it may come down to minutiae within the algorithms themselves rather than their overall complexity.
+
+\section{String Search Algorithms}
+
+A vast collection of string search algorithms has been amassed by \citet{charras2004} and from that a selection of algorithms was chosen to implement, benchmark and then compare.
+Table \ref{table-algorithms} has a list of each algorithm, the year it was publish, its author(s) and the time complexity of searching with that algorithm.
+
+\begin{table}[!hbt]
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|lll}
+  Algorithm & Year & Author(s) & Time Complexity \\
+  \hline
+  Naive &  ? & ? & O(mn) \\
+  MorrisPratt & \citeyear{morris1970} & \citeauthor{morris1970} & O(n + m) \\
+  KnuthMorrisPratt & \citeyear{knuth1977} & \citeauthor{knuth1977} & O(n + m) \\
+  BoyerMoore & \citeyear{boyer1977} & \citeauthor{boyer1977} & O(nm) \\
+  Horspool & \citeyear{horspool1980} & \citeauthor{horspool1980} & O(n + m) \\
+  ApostolicoGiancarlo & \citeyear{apostolico1986} & \citeauthor{apostolico1986} & O(n) \\
+  RabinKarp & \citeyear{karp1987} & \citeauthor{karp1987} & O(mn) \\
+  ZhuTakaoka & \citeyear{feng1987} & \citeauthor{feng1987} & O(mn) \\
+  QuickSearch & \citeyear{sunday1990} & \citeauthor{sunday1990} & O(mn) \\
+  Smith & \citeyear{smith1991} & \citeauthor{smith1991} & O(mn) \\
+  ApostolicoCrochemore & \citeyear{apostolico1991} & \citeauthor{apostolico1991} & O(n) \\
+  Colussi & \citeyear{colussi1991} & \citeauthor{colussi1991} & O(n) \\
+  Raita & \citeyear{raita1991} & \citeauthor{raita1991} & O(nm) \\
+  GalilGiancarlo & \citeyear{galil1991} & \citeauthor{galil1991} & O(n) \\
+  Bitap (Shift Or) & \citeyear{baezayates1992} & \citeauthor{baezayates1992} & O(n) \\
+  NotSoNaive & \citeyear{hancart1993} & \citeauthor{hancart1993} & O(nm) \\
+  Simon & \citeyear{simon1994} & \citeauthor{simon1994} & O(n + m) \\
+  TurboBoyerMoore & \citeyear{crochemore1994} & \citeauthor{crochemore1994} & O(n) \\
+  ReverseColussi & \citeyear{colussi1994} & \citeauthor{colussi1994} & O(n)
+\end{tabular}}
+\caption{Implemented string search algorithms for the purpose of comparison against a packet dataset. Under time complexity, \textit{n} represents the length of the Input and \textit{m} represents the length of a Rule. The time complexity is multiplied by a factor equal to the number of Rules.}
+\label{table-algorithms}
+\end{table}
+
+The time complexities in Table \ref{table-algorithms} should only serve as a basic indication of the speed of an algorithm. Big-O notations generally strip off any factors and so two algorithms may appear to have the same time complexities but in practice their speeds differ greatly because of this unknown factor.
+
+\section{Method}
+
+As mentioned previously, a system was developed to allow accurate running and performance measurement of each of the implemented algorithms (in Table \ref{table-algorithms}). The system takes a json file as input (See Listing \ref{listing-testConfiguration.json}). For the test, the following configuration was chosen:
+\begin{itemize}
+  \item algorithms
+  \item rules
+  \item inputs
+  \item times
+  \item threadCount
+\end{itemize}
+
+
+\begin{lstlisting}[caption = {Sample testConfiguration.json}, label = {listing-testConfiguration.json}]
+{
+  "algorithms": [
+    "Naive",
+    "MorrisPratt",
+    ...
+    "ReverseColussi"
+  ],
+  "rules": [
+    "time",
+    "person",
+    ...
+    "msn"
+  ],
+  "inputs": [
+    {
+      "type": "pcap",
+      "location": "smallcapture.pcap"
+    },
+    {
+      "type": "text",
+      "location": "alice.txt"
+    }
+  ],
+  "times": 20,
+  "threadCount": 18
+}
+\end{lstlisting}
+
+\section{Results}
+
+
+
+\section{Analysis}
+
+\section{Conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
