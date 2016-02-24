@@ -2,6 +2,9 @@
 \usepackage[round]{natbib}
 \usepackage{graphicx}
 \usepackage{listings}
+\usepackage{subfig}
+\usepackage{pgf}
+\usepackage[margin=1in]{geometry}
 
 \begin{document}
 
@@ -69,6 +72,10 @@ Table \ref{table-algorithms} has a list of each algorithm, the year it was publi
 
 The time complexities in Table \ref{table-algorithms} should only serve as a basic indication of the speed of an algorithm. Big-O notations generally strip off any factors and so two algorithms may appear to have the same time complexities but in practice their speeds differ greatly because of this unknown factor.
 
+Another point to note is that because these algorithms were designed to search for a single Rule, their Big-O notations only reflect that property. For multiple rules, and a serial-style approach, these algorithms need to run back-to-back; this increases increases their time to process by a factor equal to the number of Rules. For a parallel-style approach searches for different rules using the same algorithm can be run at the same time. The speed at which a search for a complete set of Rules completes is then both related to the algorithmic complexity of the search as well as the number of rules which are being searched for at the same time.
+
+An upper bound for the number of concurrent searches for different Rules with the same Algorithm and Input exists. That upper bound is defined by the number of processor cores that are available for use.
+
 \section{Method}
 
 As mentioned previously, a system was developed to allow accurate running and performance measurement of each of the implemented algorithms (in Table \ref{table-algorithms}). The system takes a json file as input (See Listing \ref{listing-testConfiguration.json}). For the test, the following configuration was chosen:
@@ -112,7 +119,7 @@ As mentioned previously, a system was developed to allow accurate running and pe
 
 \section{Results}
 
-The test generated 3400340 result objects. Each result object looked very similar to Listing \ref{listing-testresult}. Containing information about the start and end times (in nanoseconds), the elapsed time (the end time - the start time), the rules searched for, the locations that rules were matched at, the algorithm used, the input file, the input ID, the run number and the ID of that run.
+The test generated 3400340 result objects. Each result object looked very similar to Listing \ref{listing-testresult}. Containing information about the start and end times (in nanoseconds), the elapsed time (the end time - the start time), the rules searched for, the locations that rules were matched at, the algorithm used, the input file, the Input ID, the run number and the ID of that run.
 
 \begin{lstlisting}[caption = {Sample test Result}, label = {listing-testresult}]
 [
@@ -138,6 +145,28 @@ The test generated 3400340 result objects. Each result object looked very simila
 \end{lstlisting}
 
 \section{Analysis}
+
+Figure \ref{figure-barmeanprocessingsmallcapture} shows a comparison of processing times for each algorithm over each of the packets in PCAP dataset. Figure \ref{figure-barmeanprocessingalice} gives the same comparison albeit for the \textit{Alice in Wonderland} input file.
+
+\begin{figure}[t]
+    \centering
+    \subfloat[Mean Input processing times of each Algorithm for \textit{PCAP Dataset}.]{\includegraphics[width=0.85\textwidth]{images/bar_graph_mean_one_input_smallcapture_pcap}\label{figure-barmeanprocessingsmallcapture}}
+    
+    \subfloat[Mean Input processing times of each Algorithm for \textit{Alice in Wonderland}.]{\includegraphics[width=0.85\textwidth]{images/bar_graph_mean_one_input_alice_txt}\label{figure-barmeanprocessingalice}}
+    \caption{Comparison of the mean processing times for both the packet and textual datasets.}
+\end{figure}
+
+Taking into account the processing speed of each algorithm from both Figure \ref{figure-barmeanprocessingsmallcapture} and \ref{figure-barmeanprocessingalice} we are able to list the algorithms in order of their processing speed - fastest first: Horspool, Quicksearch, Raita, ReverseColussi, BoyerMoore, ZhuTakaoka, Smith, Colussi, KnuthMorrisPratt, TurboBoyerMoore, ApostolicoGiancarlo, MorrisPratt, Naive, Simon, Bitap, NotSoNaive, RabinKarp. 
+
+Although the order of speediness changes between Figure \ref{figure-barmeanprocessingsmallcapture} and \ref{figure-barmeanprocessingalice}, the position of the algorithms varies by less than four places.
+
+The relative speed difference of each algorithm in Figure \ref{figure-barmeanprocessingsmallcapture} appears to be quite small. By increasing the length of the input data (in this case by using the \textit{Alice in Wonderland} text. Figure \ref{figure-barmeanprocessingalice}) we are able to accentuate the differences.
+
+\subsection{Real World Packet Processing Speeds}
+
+For the packet data, most algorithms have a mean packet processing speed of anywhere between 0.1 and 0.2 milliseconds.
+
+The average processing speed of 0.15ms as well as an average packet length of xxx means that a rough line speed of yyy is achievable. This speed is obviously much less than what would be required of a modern Deep Packet Inspection system. The goal of this research is to develop an understand of the algorithms' relative speed.
 
 \section{Conclusion}
 
