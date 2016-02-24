@@ -46,7 +46,7 @@ Table \ref{table-algorithms} has a list of each algorithm, the year it was publi
 \begin{tabular}{l|lll}
   Algorithm & Year & Author(s) & Time Complexity \\
   \hline
-  Naive &  ? & ? & O(mn) \\
+  Naive & & & O(mn) \\
   MorrisPratt & \citeyear{morris1970} & \citeauthor{morris1970} & O(n + m) \\
   KnuthMorrisPratt & \citeyear{knuth1977} & \citeauthor{knuth1977} & O(n + m) \\
   BoyerMoore & \citeyear{boyer1977} & \citeauthor{boyer1977} & O(nm) \\
@@ -117,6 +117,18 @@ As mentioned previously, a system was developed to allow accurate running and pe
 }
 \end{lstlisting}
 
+\begin{table}[hbt]
+  \centering
+  \begin{tabular}{cccccc}
+    Minimum & First Quartile & Median & Mean & Third Quartile & Maximum \\
+    \hline
+    54.0 & 81.0 & 85.0 & 109.8 & 99.0 & 585.0
+  \end{tabular}
+  \caption{\textit{Dataset A} packet length statistics.}
+  \label{table-inputsummary}
+\end{table}
+
+
 \section{Results}
 
 The test generated 3400340 result objects. Each result object looked very similar to Listing \ref{listing-testresult}. Containing information about the start and end times (in nanoseconds), the elapsed time (the end time - the start time), the rules searched for, the locations that rules were matched at, the algorithm used, the input file, the Input ID, the run number and the ID of that run.
@@ -146,6 +158,8 @@ The test generated 3400340 result objects. Each result object looked very simila
 
 \section{Analysis}
 
+\subsection{Which Algorithms are Fastest? Which are Slowest?}
+
 Figure \ref{figure-barmeanprocessingsmallcapture} shows a comparison of processing times for each algorithm over each of the packets in PCAP dataset. Figure \ref{figure-barmeanprocessingalice} gives the same comparison albeit for the \textit{Alice in Wonderland} input file.
 
 \begin{figure}[t]
@@ -160,13 +174,53 @@ Taking into account the processing speed of each algorithm from both Figure \ref
 
 Although the order of speediness changes between Figure \ref{figure-barmeanprocessingsmallcapture} and \ref{figure-barmeanprocessingalice}, the position of the algorithms varies by less than four places.
 
-The relative speed difference of each algorithm in Figure \ref{figure-barmeanprocessingsmallcapture} appears to be quite small. By increasing the length of the input data (in this case by using the \textit{Alice in Wonderland} text. Figure \ref{figure-barmeanprocessingalice}) we are able to accentuate the differences.
+The relative speed difference of each algorithm in Figure \ref{figure-barmeanprocessingsmallcapture} appears to be quite small. By increasing the length of the input data (in this case by using the \textit{Alice in Wonderland} text. Figure \ref{figure-barmeanprocessingalice}) we are able to accentuate the differences. 
+
+\begin{table}[hbt]
+  \centering
+  \resizebox{\textwidth}{!}{
+  \begin{tabular}{l|cccccc}
+    Algorithm & Minimum & First Quartile & Median & Mean & Third Quartile & Max \\
+    \hline
+    QuickSearch & 0.08321 & 0.10750 & 0.11430 & 0.16350 & 0.12320 & 259.70000 \\    Horspool & 0.0926 & 0.1098 & 0.1166 & 0.1640 & 0.1246 & 5.3770 \\    ReverseColussi & 0.09139 & 0.11180 & 0.11910 & 0.16410 & 0.12740 & 5.70000 \\    Raita & 0.09035 & 0.10710 & 0.11600 & 0.16560 & 0.12440 & 164.10000 \\    ZhuTakaoka & 0.09288 & 0.11200 & 0.11900 & 0.16560 & 0.12740 & 4.64500 \\    KnuthMorrisPratt & 0.09113 & 0.11180 & 0.11930 & 0.16630 & 0.12780 & 25.96000 \\    Colussi & 0.09178 & 0.11130 & 0.11840 & 0.16640 & 0.12670 & 29.69000 \\    Smith & 0.09102 & 0.11170 & 0.11880 & 0.16710 & 0.12660 & 5.33400 \\    BoyerMoore & 0.09287 & 0.11070 & 0.11740 & 0.16730 & 0.12540 & 33.22000 \\    MorrisPratt & 0.08543 & 0.10910 & 0.11540 & 0.16750 & 0.12360 & 297.80000 \\    Naive & 0.08845 & 0.11180 & 0.11830 & 0.16820 & 0.12620 & 63.84000 \\    Bitap & 0.09277 & 0.11160 & 0.11900 & 0.16840 & 0.12780 & 50.14000 \\    TurboBoyerMoore & 0.09101 & 0.11220 & 0.11900 & 0.16880 & 0.12680 & 41.68000 \\    RabinKarp & 0.09562 & 0.11580 & 0.12230 & 0.17070 & 0.13200 & 245.60000 \\    Simon & 0.08248 & 0.11140 & 0.11890 & 0.17320 & 0.12750 & 117.20000 \\    ApostolicoGiancarlo & 0.09368 & 0.11420 & 0.12170 & 0.17340 & 0.13020 & 5.06700 \\    NotSoNaive & 0.1092 & 0.1698 & 0.2277 & 0.3806 & 0.2957 & 552.3000 \\
+  \end{tabular}}
+  \caption{Algorithm processing speed summary for \textit{Dataset A}}
+  \label{table-algorithmspeed}
+\end{table}
+
+The \textit{slowest} algorithms were NotSoNaive and RabinKarp.
+
+RabinKarp's \citep{karp1987} slowness can easily be attributed to both its O(mn) complexity as well as its constant recalculation of the input hash. 
+NotSoNaive's \citep{hancart1993} slowness is surprising at first. It performs worse than the Naive algorithm when it is supposed to be an improvement on it. The NotSoNaive algorithm tries to improve upon the Naive algorithm by adding a adding a check to see if the Input ahead shows signs of matching the Rule; this extra step seems to cause the speed decrease when compared to Naive. By checking \ref{table-algorithmspeed}, you may think that the mean processing time for NotSoNaive was heavily influenced by the maximum speed (that is to say that that value is an outlier) but by checking the median processing it is clear that the mean is not far from it.
+
+The \textit{fastest} algorithms were QuickSearch and Horspool.
+
+QuickSearch \citep{sunday1990} makes use of the BoyerMoore \citep{boyer1977} algorithm's bad-character shift table. The algorithm is known to perform well for short rule \citep{leqroc1995} and since rules used in the experiment were mostly short, it performed well.
+The Horspool \citep{horspool1980} algorithm also makes use of the bad-character shift table from BoyerMoore \citep{boyer1977}. Although the algorithm has a O(mn) complexity, it can be shown that the average number of comparisons made with a character in the Input is $\alpha$, where $\frac{1}{c} \leq \alpha \leq \frac{2}{c+1}$ and $c$ is the number number of characters in the alphabet \citep{baezayates1992b}. In our case our alphabet is 256 characters long (the size of one byte) and so the average number of comparisons to a character in our text is $\frac{1}{256} \leq \alpha \leq \frac{2}{257}$. That is a very low number of comparisons per input character.
+
+\subsection{Do Some Algorithms Perform Differently Depending on the Input Length?}
+
+Figure \ref{figure-speedvslength} shows a scatter plot of Input processing speed versus packet length. This scatter plot shows processing times for all algorithms. Note that the vertical axis has been plotted with a logarithmic scale. From the plot it is clear that there is an upward trend of processing time as the input length increases.
+
+\begin{figure}[t]
+    \centering
+    \subfloat[Input processing speed vs Input length for \textit{Dataset A}.]{\includegraphics[width=0.85\textwidth]{images/scatter_mean_time_vs_input_length_pcap}\label{figure-speedvslength}}
+    
+    \subfloat[Input processing speed per algorithm vs Input length for \textit{Dataset A}.]{\includegraphics[width=0.85\textwidth]{images/scatter_mean_time_vs_input_length_pcap}\label{figure-speedperalgorithmvslength}}
+    \caption{Input processing speeds vs input length for \textit{Dataset A}.}
+\end{figure}
+
+Algorithms best suited to deep packet inspection would be expected to perform better for smaller input lengths and the performance at input lengths larger than the maximum length of a packet would not matter. Algorithms with a bounded maximum processing time would be especially enticing to a deep packet inspection system implementor as it could guarantee a minimum throughput.
+
+\subsection{Which Algorithms Have the Least Fluctuating Processing Times?}
+
+It is important that algorithms have consistent performance. Algorithms that have highly fluctuating processing speeds lead to unpredictable processing times and unwanted slowdowns of realtime packet inspection.
 
 \subsection{Real World Packet Processing Speeds}
 
 For the packet data, most algorithms have a mean packet processing speed of anywhere between 0.1 and 0.2 milliseconds.
 
-The average processing speed of 0.15ms as well as an average packet length of xxx means that a rough line speed of yyy is achievable. This speed is obviously much less than what would be required of a modern Deep Packet Inspection system. The goal of this research is to develop an understand of the algorithms' relative speed.
+The average processing speed of about 0.15ms (Table \ref{table-algorithmspeed}) as well as an average packet length of about 110 bytes (Table \ref{table-inputsummary}) means that a rough line speed of 6 megabits per second is achievable. This speed is obviously much less than what would be required of a modern Deep Packet Inspection system. The goal of this research is to develop an understand of the algorithms' relative speed.
 
 \section{Conclusion}
 
