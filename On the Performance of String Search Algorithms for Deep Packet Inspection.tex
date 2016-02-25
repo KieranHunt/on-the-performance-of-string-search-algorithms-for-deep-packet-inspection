@@ -2,7 +2,8 @@
 \usepackage[round]{natbib}
 \usepackage{graphicx}
 \usepackage{listings}
-\usepackage{subfig}
+\usepackage{caption}
+\usepackage{subcaption}
 \usepackage{pgf}
 \usepackage[margin=1in]{geometry}
 
@@ -164,10 +165,20 @@ Figure \ref{figure-barmeanprocessingsmallcapture} shows a comparison of processi
 
 \begin{figure}[t]
     \centering
-    \subfloat[Mean Input processing times of each Algorithm for \textit{PCAP Dataset}.]{\includegraphics[width=0.85\textwidth]{images/bar_graph_mean_one_input_smallcapture_pcap}\label{figure-barmeanprocessingsmallcapture}}
-    
-    \subfloat[Mean Input processing times of each Algorithm for \textit{Alice in Wonderland}.]{\includegraphics[width=0.85\textwidth]{images/bar_graph_mean_one_input_alice_txt}\label{figure-barmeanprocessingalice}}
-    \caption{Comparison of the mean processing times for both the packet and textual datasets.}
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=0.85\textwidth]{images/bar_graph_mean_one_input_smallcapture_pcap}
+        \label{figure-barmeanprocessingsmallcapture}
+        \caption{Mean Input processing times of each Algorithm for \textit{PCAP Dataset}.}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=0.85\textwidth]{images/bar_graph_mean_one_input_alice_txt}
+        \label{figure-barmeanprocessingalice}
+        \caption{Mean Input processing times of each Algorithm for \textit{Alice in Wonderland}.}
+    \end{subfigure}
+    \caption{Mean input processing times for each algorithm.}
 \end{figure}
 
 Taking into account the processing speed of each algorithm from both Figure \ref{figure-barmeanprocessingsmallcapture} and \ref{figure-barmeanprocessingalice} we are able to list the algorithms in order of their processing speed - fastest first: Horspool, Quicksearch, Raita, ReverseColussi, BoyerMoore, ZhuTakaoka, Smith, Colussi, KnuthMorrisPratt, TurboBoyerMoore, ApostolicoGiancarlo, MorrisPratt, Naive, Simon, Bitap, NotSoNaive, RabinKarp. 
@@ -204,17 +215,46 @@ Figure \ref{figure-speedvslength} shows a scatter plot of Input processing speed
 
 \begin{figure}[t]
     \centering
-    \subfloat[Input processing speed vs Input length for \textit{Dataset A}.]{\includegraphics[width=0.85\textwidth]{images/scatter_mean_time_vs_input_length_pcap}\label{figure-speedvslength}}
-    
-    \subfloat[Input processing speed per algorithm vs Input length for \textit{Dataset A}.]{\includegraphics[width=0.85\textwidth]{images/scatter_mean_time_vs_input_length_pcap}\label{figure-speedperalgorithmvslength}}
+    \includegraphics[width=0.85\textwidth]{images/scatter_mean_time_vs_input_length_pcap}
     \caption{Input processing speeds vs input length for \textit{Dataset A}.}
+    \label{figure-speedvslength}
 \end{figure}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{images/scatter_mean_vs_input_length_Horspool}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{images/scatter_mean_vs_input_length_QuickSearch}
+  \end{subfigure}
+  ~
+  \begin{subfigure}[b]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{images/scatter_mean_vs_input_length_NotSoNaive}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{images/scatter_mean_vs_input_length_RabinKarp}
+  \end{subfigure}
+  \caption{}
+\end{figure}
+
 
 Algorithms best suited to deep packet inspection would be expected to perform better for smaller input lengths and the performance at input lengths larger than the maximum length of a packet would not matter. Algorithms with a bounded maximum processing time would be especially enticing to a deep packet inspection system implementor as it could guarantee a minimum throughput.
 
 \subsection{Which Algorithms Have the Least Fluctuating Processing Times?}
 
 It is important that algorithms have consistent performance. Algorithms that have highly fluctuating processing speeds lead to unpredictable processing times and unwanted slowdowns of realtime packet inspection.
+
+Figure \ref{figure-standarddeviation} shows the standard deviations of each of the algorithms for \textit{Dataset A}. Most algorithms appear to have relatively low fluctuation on their processing times whilst some are a bit higher. The Horspool \citep{horspool1980} algorithm appears to have a very low standard deviation which, combined with its speed shown in Table \ref{table-algorithmspeed}, makes it a very strong packet processing algorithm.
+
+Another point of interest in Figure \ref{figure-standarddeviation} is that QuickSeach has a notably higher standard deviation than Horspool. It may not be all that well suited to packet inspection as a result.
+
+\begin{figure}[hbt]
+  \includegraphics[width=\textwidth]{images/bar_graph_algorithm_standard_deviation_pcap}
+  \caption{The standard deviation of processing time per algorithm for \textit{Dataset A}.}
+  \label{figure-standarddeviation}
+\end{figure}
+
 
 \subsection{Real World Packet Processing Speeds}
 
@@ -223,6 +263,9 @@ For the packet data, most algorithms have a mean packet processing speed of anyw
 The average processing speed of about 0.15ms (Table \ref{table-algorithmspeed}) as well as an average packet length of about 110 bytes (Table \ref{table-inputsummary}) means that a rough line speed of 6 megabits per second is achievable. This speed is obviously much less than what would be required of a modern Deep Packet Inspection system. The goal of this research is to develop an understand of the algorithms' relative speed.
 
 \section{Conclusion}
+
+Of the original algorithms chosen to test, Horspool \citep{horspool1980} seems to perform best when it comes to packet analysis.
+Although software-based deep packet inspection is not as popular as its hardware counterpart, it does provide an easier-to-scale environment that can better cope with the fluctuations of periodic network load.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
