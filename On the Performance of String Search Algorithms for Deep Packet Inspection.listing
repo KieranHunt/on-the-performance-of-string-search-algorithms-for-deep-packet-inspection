@@ -1,0 +1,28 @@
+[caption = {Sample testConfiguration.json}, label = {listing-testConfiguration.json}]
+{
+  "algorithms": [
+    "Naive",
+    "MorrisPratt",
+    ...
+    "ReverseColussi"
+  ],
+  "rules": [
+    "time",
+    "person",
+    ...
+    "msn"
+  ],
+  "inputs": [
+    {
+      "type": "pcap",
+      "location": "smallcapture.pcap"
+    },
+    {
+      "type": "text",
+      "location": "alice.txt"
+    }
+  ],
+  "times": 20,
+  "threadCount": 18
+}
+\caption{Sample testConfiguration.json}

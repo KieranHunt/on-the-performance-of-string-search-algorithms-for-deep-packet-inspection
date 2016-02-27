@@ -5,7 +5,55 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{pgf}
+\usepackage[most]{tcolorbox}
 \usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{inconsolata}
+\usepackage{cleveref}
+\usepackage[inline]{enumitem}
+\usepackage{dcolumn}
+
+\usepackage[scaled]{helvet}
+\renewcommand\familydefault{\sfdefault} 
+\usepackage[T1]{fontenc}
+
+\definecolor{lightgray}{rgb}{.9,.9,.9}
+\definecolor{darkgray}{rgb}{.4,.4,.4}
+\definecolor{purple}{rgb}{0.65, 0.12, 0.82}
+\definecolor{atomred}{RGB}{224, 108, 117}
+\definecolor{atomwhite}{RGB}{250, 250, 250}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{atomred}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{
+   language=JavaScript,
+   backgroundcolor=\color{atomwhite},
+   extendedchars=true,
+   basicstyle=\ttfamily\footnotesize,
+   showstringspaces=false,
+   showspaces=false,
+   numbers=left,
+   numberstyle=\ttfamily\footnotesize,
+   numbersep=5pt,
+   tabsize=2,
+   breaklines=true,
+   showtabs=false,
+   captionpos=b,
+   frame=single
+}
 
 \begin{document}
 
@@ -14,32 +62,33 @@
 \date{\today}
 \maketitle
 
+%TODO: Abstract
+
 \section{Introduction}
 
-In Deep Packet Inspection today, systems are generally built on top of expensive custom hardware. Making changes to such a system (such as horizontally scaling) is often arduous, time consuming and expensive. Deep Packet Inspection via software means is usually slower but does provide some benefit: adding or removing capacity to perform inspection is often as simple as adding or removing hosts doing the inspection. String search algorithms have long been of interest to the field of computer science and as a result a substantial number of search algorithms exist. This paper looks to ask which of these string search algorithms perform best at deep packet inspection and how does their performance compare to that of their intended design.
+In Deep Packet Inspection systems today are designed to operate on expensive custom hardware. Making changes to such a system (such as horizontally or vertically scaling) is often arduous, time consuming and expensive; the process requires adding or removing hardware that is often made-to-order from a manufacturer. Deep Packet Inspection via software means is slower but does provide some benefit over that of hardware inspection. Increasing the speed of software-based Deep Packet Inspection is often as simple as increasing the number of hosts performing the inspection. Modern data centres using hardware virtualisation enable the provisioning of extra processing capacity to done with very little lead time and to be completed quickly. This allows resources to only be used when needed and used elsewhere when not. 
 
-Relevant Deep Packet Inspection terminology is as follows:
-\begin{itemize}
-  \item \textbf{Packet}: Data representing a TCP/IP stack packet. This includes information from the network to the application layer.
-  \item \textbf{Packet Capture File (PCAP)}: A file containing packets. These packets were generally captured by recording a network interface.
-  \item \textbf{Deep Packet Inspection (DPI)}: the process by which a packet, or stream of packets, is analysed for the presence of predefined patterns.
-\end{itemize}
+String search algorithms have long been of interest to the field of computer science - with the first paper being publish by \citeauthor{morris1970} in \citeyear{morris1970} - and as a result a substantial number of search algorithms exist \cite{charras2004}. The following paper asks which of these string search algorithms performs best at Deep Packet Inspection and how does their performance compare to that of their theoretical speed.
 
 In order to properly test these string search algorithms, a system was designed to accurately compare each algorithm for inspection of both packet captures as well as textual inputs such as text files.
 
-In the system for comparing string search algorithms, the following terminology is relevant:
+\section{Background}
+
+In the context of Deep Packet Inspection, the following definitions are relevant:
 \begin{itemize}
-  \item \textbf{Input}: This is the interface through which the system reads in either the packets or textual Input. Algorithms can request a single byte from the input, the length of the Input or the entire Input itself.
-  \item \textbf{Rule}: The system searches through the input for a given Rule. Rules are very similar to input in that a single byte of information, the length of the rule or the entire rule itself can be requested. 
-  \item \textbf{Algorithm}: This represents a string search algorithm and is the means by which the system interacts with all of the algorithms. It has a single interface for performing a search where the Input is supplied and a Result is returned.
-  \item \textbf{Result}: This represents the result of the inspection of a single Input. In it is the start and end times of the inspection, the Rules, Input and the location (if any) in the Input where the Rules were matched.
+  \item \textbf{Packet}: Binary data representing a unit of data carried on a packet-switched network . This includes information from the network to the application layer. The word \textit{packet} is overloaded in computer networking: it either refers to the data unit containing Network Layer information in the OSI model, the data unit containing Network layer information in the TCP/IP model or an entire unit of data transmitted over a network. When referring to a packet we imply the latter meaning.
+  \item \textbf{Packet Capture File (PCAP)}: A file containing packets. These packets were generally captured by recording a network interface using the libpcap library \citep{tcpdump2016}.
+  \item \textbf{Deep Packet Inspection (DPI)}: The process by which a PCAP file or stream of packets from a network interface, is analysed for the presence of predefined patterns or rules.
 \end{itemize}
 
-Each of the string search algorithms have known performance (algorithm complexity known as big O) usually related to the length of the string being searched. The results of the following experiments should follow the predicted complexity of string search algorithms. Algorithm complexity often only provides insight into large variations in Input length (differing orders of magnitude) whereas in packet data has a limited range of Input lengths and so it may come down to minutiae within the algorithms themselves rather than their overall complexity.
+\subsection{String Search Algorithms}
 
-\section{String Search Algorithms}
+A vast collection of string search algorithms have been amassed by \citet{charras2004} and from that a selection of algorithms was chosen to implement, benchmark and then compare. These algorithms share a number similarities:
+\begin{itemize}
+  \item \textbf{Exact String Matching}: Each of the algorithms that have been chosen to compare exactly match a given rule in an input. Some string search algorithms are designed to show partial matches but none of these have been selected for comparison.
+  \item \textbf{Single Rule Matching}: Each of these algorithms searches for just a single rule throughout the entire input. For multiple rules another solution is needed.
+\end{itemize}
 
-A vast collection of string search algorithms has been amassed by \citet{charras2004} and from that a selection of algorithms was chosen to implement, benchmark and then compare.
 Table \ref{table-algorithms} has a list of each algorithm, the year it was publish, its author(s) and the time complexity of searching with that algorithm.
 
 \begin{table}[!hbt]
@@ -71,38 +120,29 @@ Table \ref{table-algorithms} has a list of each algorithm, the year it was publi
 \label{table-algorithms}
 \end{table}
 
-The time complexities in Table \ref{table-algorithms} should only serve as a basic indication of the speed of an algorithm. Big-O notations generally strip off any factors and so two algorithms may appear to have the same time complexities but in practice their speeds differ greatly because of this unknown factor.
+Each of the string search algorithms has a known theoretical performance (known as algorithm complexity or  Big-O (presented in the \textit{Time Complexity} column of Table \ref{table-algorithms})) This value is generally related in some way to both the length of the input and rule. The results of the following experiments should follow the predicted complexity of string search algorithms. Algorithm complexity often only provides insight into processing speed where large variations in Input length (differing orders of magnitude) are present. In packet data a limited range of input lengths is possible - this value is set by the maximum transmission unit of the transport medium - and so it may come down to minutiae within the algorithms themselves rather than their overall complexity.
 
-Another point to note is that because these algorithms were designed to search for a single Rule, their Big-O notations only reflect that property. For multiple rules, and a serial-style approach, these algorithms need to run back-to-back; this increases increases their time to process by a factor equal to the number of Rules. For a parallel-style approach searches for different rules using the same algorithm can be run at the same time. The speed at which a search for a complete set of Rules completes is then both related to the algorithmic complexity of the search as well as the number of rules which are being searched for at the same time.
+As the implemented algorithms were designed to search for a single rule, their Big-O notations only reflect that property. For many rules, and a serial-style programming approach (where rules are searched for sequentially), these algorithms need to run back-to-back; this style of implementation increases their time to process by a factor about equal to the number of rules. For a parallel-style approach (where many rules are searched for at the same time) the processing time is affected by a factor lower than that of the serial implementation. The speed at which a search for a complete set of rules with a parallel implementation completes is then both related to the algorithmic complexity of the search as well as the number of rules which are being searched for at the same time.
 
-An upper bound for the number of concurrent searches for different Rules with the same Algorithm and Input exists. That upper bound is defined by the number of processor cores that are available for use.
+An upper bound for the number of concurrent searches for different rules with the same algorithm and input does exist. That upper bound is defined by the number of processor cores that are available for use as how much a single thread is able to saturate a processor core.
+For a system with 10 cores. Running a search in a single thread (and therefor on a single core) is only using 10\% of the available processing power. Splitting the search across 10 should serve to give close to an order of magnitude speed increase. If those threads were saturating the processing speed of all 10 cores (using 100\% of the available processing power), adding more threads might serve to reduce the benefits seen before. The overhead of switching between threads on a single core may start to adversely affect the processing time.
 
 \section{Method}
 
-As mentioned previously, a system was developed to allow accurate running and performance measurement of each of the implemented algorithms (in Table \ref{table-algorithms}). The system takes a json file as input (See Listing \ref{listing-testConfiguration.json}). For the test, the following configuration was chosen:
+For the purpose of these experiments, a system was developed to allow for the accurate running and performance measurement of each of the implemented algorithms (in Table \ref{table-algorithms}). 
+The following terminology is relevant to that system:
 \begin{itemize}
-  \item \texttt{algorithms} - a list of all implemented Algorithms (See Table \ref{table-algorithms}) 
-  \item \texttt{rules} - string-based rules covering the twenty most popular websites \citep{alexa2016} - just their domain names were taken - as well as the twenty most popular words in the English language \citep{oed2016}.
-  \item \texttt{inputs} - a dataset of DNS traffic was selected and a subset of 10000 packets was extracted. This was labeled \texttt{smallcapture.pcap}. A second Input was also selected, this is the complete \textit{Alice in Wonderland} by Lewis Carol. This Input was labeled \texttt{alice.txt}. The system treats text and pcap input files differently. Text input files are used to create a single Input object representing all information in that file. Pcap input files are split up into individual packet objects and each packet represents a single Input.
-  \item \texttt{times} - the tests were each run 20 times.
-  \item \texttt{threadCount} - drastic speed increases are made possible by splitting the work of the Algorithms across multiple threads. The machine used to perform the test has 24 useable cores and so a max \texttt{threadCount} of 18 was chosen to best make use of those cores.
+  \item \textbf{Input}: The system interacts with all kinds of input through a common interface. Both textual- and packet-style are interacted with through this interface. The system is able to request a single byte of data at a given location from an input as well as obtain the length of the input.
+  \item \textbf{Rule}: Rules are the patterns searched for by the system. Rules mimic inputs in that the system may also retrieve a single byte from the rule or get the rule's length.
+  \item \textbf{Algorithm}: This represents a string search algorithm (from Table \ref{table-algorithms}) and is the means by which the system interacts with all of the implemented algorithms. An algorithm provides a search function to the system with common inputs and outputs.
+  \item \textbf{Result}: For a single input, set of rules and a particular run, a result is created. This result contains all of the information about the outcome of the search and the configuration surrounding it.
 \end{itemize}
 
-
-\begin{lstlisting}[caption = {Sample testConfiguration.json}, label = {listing-testConfiguration.json}]
+The test system was designed to accept a JSON file \citep{json2016} as configuration (shown in Listing \ref{listing-testConfiguration.json}).
+\begin{lstlisting}[caption=Sample testConfiguration.json, label=listing-testConfiguration.json]
 {
-  "algorithms": [
-    "Naive",
-    "MorrisPratt",
-    ...
-    "ReverseColussi"
-  ],
-  "rules": [
-    "time",
-    "person",
-    ...
-    "msn"
-  ],
+  "algorithms": ["Naive", "MorrisPratt", ..., "ReverseColussi"],
+  "rules": ["time", "person", ..., "msn"],
   "inputs": [
     {
       "type": "pcap",
@@ -118,34 +158,41 @@ As mentioned previously, a system was developed to allow accurate running and pe
 }
 \end{lstlisting}
 
-\begin{table}[hbt]
+For the test, the following configuration was chosen:
+\begin{itemize}
+  \item \texttt{algorithms} - a list of all implemented algorithms (See Table \ref{table-algorithms}) 
+  \item \texttt{rules} - string-based rules covering the twenty most popular websites \citep{alexa2016} - where just their domain names were taken - as well as the twenty most popular words in the English language \citep{oed2016}.
+  \item \texttt{inputs} - a dataset of DNS traffic was selected and a subset of 10000 packets was extracted. This was labeled \texttt{smallcapture.pcap} and known hereafter as \textit{Dataset A}. The complete \textit{Alice in Wonderland} by Lewis Carol, labeled as labeled \texttt{alice.txt}, was selected as the second input and known hereafter as \textit{Dataset B}. The test system treats textual and PCAP input files differently. Text input files transformed into a single input object representing all information in that file. PCAP input files are split up into individual packet objects and each packet represents a single input.
+  \item \texttt{times} - each algorithm searched all inputs for every rule. We chose to repeat the test 20 times to ensure that transient fluctuations caused by other processes on the test hardware could be identified.
+  \item \texttt{threadCount} - drastic speed increases are made possible by splitting the work of the Algorithms across multiple threads. The machine used to perform the test has 24 useable cores and so a max \texttt{threadCount} of 18 was chosen to best make use of those cores. 
+\end{itemize}
+
+
+For \textit{Dataset A}, \ref{table-inputsummary} gives a statistical summary of the lengths of the inputs. As \textit{Dataset A} is comprised of DNS requests and responses it is unsurprising that the average length of a packet is about 110 bytes. This is far below the ethernet maximum transmission unit of 1500 bytes \citep{rfc894}. 
+
+\begin{table}[!htb]
   \centering
   \begin{tabular}{cccccc}
     Minimum & First Quartile & Median & Mean & Third Quartile & Maximum \\
     \hline
     54.0 & 81.0 & 85.0 & 109.8 & 99.0 & 585.0
   \end{tabular}
-  \caption{\textit{Dataset A} packet length statistics.}
+  \caption{\textit{Dataset A} packet length statistical summary (in bytes).}
   \label{table-inputsummary}
 \end{table}
 
 
 \section{Results}
 
-The test generated 3400340 result objects. Each result object looked very similar to Listing \ref{listing-testresult}. Containing information about the start and end times (in nanoseconds), the elapsed time (the end time - the start time), the rules searched for, the locations that rules were matched at, the algorithm used, the input file, the Input ID, the run number and the ID of that run.
+The test generated 3400340 result objects. Result objects look similar to Listing \ref{listing-testresult}. Each result object contains the following information about a search: the start time and end time, the elapsed time ($ end\ time - start\ time $), the list of rules, the locations that the rules were found in the input, the algorithm used to perform the search, the input file (as mentioned earlier many inputs can share an input file), the unique ID of the input, the run number (between 1 and the number of times the test was set to run), and the ID of that run.
 
-\begin{lstlisting}[caption = {Sample test Result}, label = {listing-testresult}]
+\begin{lstlisting}[caption=Example result, label=listing-testresult]
 [
     {
         "start": 206079193307938,
         "end": 206079207132342,
         "elapsed": 13824404,
-        "rules": [
-            "time",
-            "person",
-            ...
-            "msn"
-        ],
+        "rules": ["time", "person", ... "msn"],
         "locations": [1, 2, ..., n],
         "algorithm": "Smith",
         "inputFile": "smallcapture.pcap",
@@ -157,97 +204,126 @@ The test generated 3400340 result objects. Each result object looked very simila
 ]
 \end{lstlisting}
 
-\section{Analysis}
+\subsection{Analysis}
 
-\subsection{Which Algorithms are Fastest? Which are Slowest?}
+\subsubsection{Which Algorithms are Fastest? Which are Slowest?}
 
-Figure \ref{figure-barmeanprocessingsmallcapture} shows a comparison of processing times for each algorithm over each of the packets in PCAP dataset. Figure \ref{figure-barmeanprocessingalice} gives the same comparison albeit for the \textit{Alice in Wonderland} input file.
+Figure \ref{figure-barmeanprocessingalice} shows a comparison of processing times for each algorithm over each of the packets in \textit{Dataset A}. Figure \ref{figure-barmeanprocessingalice} gives the same comparison albeit for \textit{Dataset B}.
 
-\begin{figure}[t]
+\begin{figure}[!htb]
     \centering
-    \begin{subfigure}[b]{\textwidth}
+    \begin{subfigure}[b]{0.8\textwidth}
         \centering
-        \includegraphics[width=0.85\textwidth]{images/bar_graph_mean_one_input_smallcapture_pcap}
-        \label{figure-barmeanprocessingsmallcapture}
+        \includegraphics[width=\textwidth]{images/bar_graph_mean_one_input_smallcapture_pcap}
         \caption{Mean Input processing times of each Algorithm for \textit{PCAP Dataset}.}
+        \label{figure-barmeanprocessingsmallcapture}
     \end{subfigure}
     ~
-    \begin{subfigure}[b]{\textwidth}
+    \begin{subfigure}[b]{0.8\textwidth}
         \centering
-        \includegraphics[width=0.85\textwidth]{images/bar_graph_mean_one_input_alice_txt}
-        \label{figure-barmeanprocessingalice}
+        \includegraphics[width=\textwidth]{images/bar_graph_mean_one_input_alice_txt} 
         \caption{Mean Input processing times of each Algorithm for \textit{Alice in Wonderland}.}
+        \label{figure-barmeanprocessingalice}
     \end{subfigure}
     \caption{Mean input processing times for each algorithm.}
 \end{figure}
 
-Taking into account the processing speed of each algorithm from both Figure \ref{figure-barmeanprocessingsmallcapture} and \ref{figure-barmeanprocessingalice} we are able to list the algorithms in order of their processing speed - fastest first: Horspool, Quicksearch, Raita, ReverseColussi, BoyerMoore, ZhuTakaoka, Smith, Colussi, KnuthMorrisPratt, TurboBoyerMoore, ApostolicoGiancarlo, MorrisPratt, Naive, Simon, Bitap, NotSoNaive, RabinKarp. 
+The following is a list of algorithms, ordered by their mean processing times for both \textit{Dataset A} and \textit{Dataset B}:
+\begin{enumerate*}
+    \item Horspool,
+    \item QuickSearch,
+    \item Raita,
+    \item ReverseColussi,
+    \item BoyerMoore,
+    \item ZhuTakaoka,
+    \item Smith,
+    \item Colussi,
+    \item KnuthMorrisPratt,
+    \item TurboBoyerMoore,
+    \item ApostolicoGiancarlo,
+    \item MorrisPratt,
+    \item Naive,
+    \item Simon,
+    \item Bitap,
+    \item NotSoNaive,
+    \item RabinKarp
+\end{enumerate*}.\\ 
 
-Although the order of speediness changes between Figure \ref{figure-barmeanprocessingsmallcapture} and \ref{figure-barmeanprocessingalice}, the position of the algorithms varies by less than four places.
+Although the order according to mean processing speed changes between Figure \ref{figure-barmeanprocessingsmallcapture} and \ref{figure-barmeanprocessingalice}, the position of the algorithms varies by less than four places.
 
-The relative speed difference of each algorithm in Figure \ref{figure-barmeanprocessingsmallcapture} appears to be quite small. By increasing the length of the input data (in this case by using the \textit{Alice in Wonderland} text. Figure \ref{figure-barmeanprocessingalice}) we are able to accentuate the differences. 
+The relative speed difference of each algorithm in Figure \ref{figure-barmeanprocessingsmallcapture} appears to be noticeably small. The first 16 algorithms appear to have nearly identical mean processing speeds. By increasing the length of the input data (in this case by using the \textit{Dataset B} in Figure \ref{figure-barmeanprocessingalice}) we are able to accentuate the differences between the algorithms. \\
+Table \ref{table-algorithmspeed} gives a full statistical summary of every algorithm searching through \textit{Dataset A}.\\
 
-\begin{table}[hbt]
+\begin{table}[!htb]
   \centering
   \resizebox{\textwidth}{!}{
-  \begin{tabular}{l|cccccc}
+  \begin{tabular}{r|llllll}
     Algorithm & Minimum & First Quartile & Median & Mean & Third Quartile & Max \\
     \hline
-    QuickSearch & 0.08321 & 0.10750 & 0.11430 & 0.16350 & 0.12320 & 259.70000 \\    Horspool & 0.0926 & 0.1098 & 0.1166 & 0.1640 & 0.1246 & 5.3770 \\    ReverseColussi & 0.09139 & 0.11180 & 0.11910 & 0.16410 & 0.12740 & 5.70000 \\    Raita & 0.09035 & 0.10710 & 0.11600 & 0.16560 & 0.12440 & 164.10000 \\    ZhuTakaoka & 0.09288 & 0.11200 & 0.11900 & 0.16560 & 0.12740 & 4.64500 \\    KnuthMorrisPratt & 0.09113 & 0.11180 & 0.11930 & 0.16630 & 0.12780 & 25.96000 \\    Colussi & 0.09178 & 0.11130 & 0.11840 & 0.16640 & 0.12670 & 29.69000 \\    Smith & 0.09102 & 0.11170 & 0.11880 & 0.16710 & 0.12660 & 5.33400 \\    BoyerMoore & 0.09287 & 0.11070 & 0.11740 & 0.16730 & 0.12540 & 33.22000 \\    MorrisPratt & 0.08543 & 0.10910 & 0.11540 & 0.16750 & 0.12360 & 297.80000 \\    Naive & 0.08845 & 0.11180 & 0.11830 & 0.16820 & 0.12620 & 63.84000 \\    Bitap & 0.09277 & 0.11160 & 0.11900 & 0.16840 & 0.12780 & 50.14000 \\    TurboBoyerMoore & 0.09101 & 0.11220 & 0.11900 & 0.16880 & 0.12680 & 41.68000 \\    RabinKarp & 0.09562 & 0.11580 & 0.12230 & 0.17070 & 0.13200 & 245.60000 \\    Simon & 0.08248 & 0.11140 & 0.11890 & 0.17320 & 0.12750 & 117.20000 \\    ApostolicoGiancarlo & 0.09368 & 0.11420 & 0.12170 & 0.17340 & 0.13020 & 5.06700 \\    NotSoNaive & 0.1092 & 0.1698 & 0.2277 & 0.3806 & 0.2957 & 552.3000 \\
+    QuickSearch & 0.08321 & 0.10750 & 0.11430 & 0.16350 & 0.12320 & 259.7 \\    Horspool & 0.0926 & 0.1098 & 0.1166 & 0.1640 & 0.1246 & 5.377 \\    ReverseColussi & 0.09139 & 0.11180 & 0.11910 & 0.16410 & 0.12740 & 5.7 \\    Raita & 0.09035 & 0.10710 & 0.11600 & 0.16560 & 0.12440 & 164.1 \\    ZhuTakaoka & 0.09288 & 0.11200 & 0.11900 & 0.16560 & 0.12740 & 4.645 \\    KnuthMorrisPratt & 0.09113 & 0.11180 & 0.11930 & 0.16630 & 0.12780 & 25.96 \\    Colussi & 0.09178 & 0.11130 & 0.11840 & 0.16640 & 0.12670 & 29.69 \\    Smith & 0.09102 & 0.11170 & 0.11880 & 0.16710 & 0.12660 & 5.334 \\    BoyerMoore & 0.09287 & 0.11070 & 0.11740 & 0.16730 & 0.12540 & 33.22 \\    MorrisPratt & 0.08543 & 0.10910 & 0.11540 & 0.16750 & 0.12360 & 297.8 \\    Naive & 0.08845 & 0.11180 & 0.11830 & 0.16820 & 0.12620 & 63.84 \\    Bitap & 0.09277 & 0.11160 & 0.11900 & 0.16840 & 0.12780 & 50.14 \\    TurboBoyerMoore & 0.09101 & 0.11220 & 0.11900 & 0.16880 & 0.12680 & 41.68 \\    RabinKarp & 0.09562 & 0.11580 & 0.12230 & 0.17070 & 0.13200 & 245.6 \\    Simon & 0.08248 & 0.11140 & 0.11890 & 0.17320 & 0.12750 & 117.2 \\    ApostolicoGiancarlo & 0.09368 & 0.11420 & 0.12170 & 0.17340 & 0.13020 & 5.067 \\    NotSoNaive & 0.1092 & 0.1698 & 0.2277 & 0.3806 & 0.2957 & 552.3 \\
   \end{tabular}}
   \caption{Algorithm processing speed summary for \textit{Dataset A}}
   \label{table-algorithmspeed}
 \end{table}
 
-The \textit{slowest} algorithms were NotSoNaive and RabinKarp.
-
-RabinKarp's \citep{karp1987} slowness can easily be attributed to both its O(mn) complexity as well as its constant recalculation of the input hash. 
-NotSoNaive's \citep{hancart1993} slowness is surprising at first. It performs worse than the Naive algorithm when it is supposed to be an improvement on it. The NotSoNaive algorithm tries to improve upon the Naive algorithm by adding a adding a check to see if the Input ahead shows signs of matching the Rule; this extra step seems to cause the speed decrease when compared to Naive. By checking \ref{table-algorithmspeed}, you may think that the mean processing time for NotSoNaive was heavily influenced by the maximum speed (that is to say that that value is an outlier) but by checking the median processing it is clear that the mean is not far from it.
-
 The \textit{fastest} algorithms were QuickSearch and Horspool.
 
-QuickSearch \citep{sunday1990} makes use of the BoyerMoore \citep{boyer1977} algorithm's bad-character shift table. The algorithm is known to perform well for short rule \citep{leqroc1995} and since rules used in the experiment were mostly short, it performed well.
-The Horspool \citep{horspool1980} algorithm also makes use of the bad-character shift table from BoyerMoore \citep{boyer1977}. Although the algorithm has a O(mn) complexity, it can be shown that the average number of comparisons made with a character in the Input is $\alpha$, where $\frac{1}{c} \leq \alpha \leq \frac{2}{c+1}$ and $c$ is the number number of characters in the alphabet \citep{baezayates1992b}. In our case our alphabet is 256 characters long (the size of one byte) and so the average number of comparisons to a character in our text is $\frac{1}{256} \leq \alpha \leq \frac{2}{257}$. That is a very low number of comparisons per input character.
+QuickSearch \citep{sunday1990} makes use of the BoyerMoore \citep{boyer1977} algorithm's bad-character shift table. The algorithm is known to perform well for short rules \citep{leqroc1995} and because our test used relatively short words as its input this may be why QuickSearch has performed so well.
 
-\subsection{Do Some Algorithms Perform Differently Depending on the Input Length?}
+The Horspool \citep{horspool1980} algorithm also makes use of the bad-character shift table from the BoyerMoore \citep{boyer1977} algorithm. Although the Horspool algorithm has a O(mn) complexity (Table \ref{table-algorithms}), it can be shown that the average number of comparisons made with a character in the input is $\alpha$, where $\frac{1}{c} \leq \alpha \leq \frac{2}{c+1}$ and $c$ is the number of characters in the alphabet \citep{baezayates1992b}. In our case our alphabet is 256 characters long (the size of one byte) making the average number of comparisons to a character in our text $0.0039 \leq \alpha \leq 0.0079$. That is a very low number of comparisons per input character.\\
 
-Figure \ref{figure-speedvslength} shows a scatter plot of Input processing speed versus packet length. This scatter plot shows processing times for all algorithms. Note that the vertical axis has been plotted with a logarithmic scale. From the plot it is clear that there is an upward trend of processing time as the input length increases.
+The \textit{slowest} algorithms were NotSoNaive and RabinKarp.
 
-\begin{figure}[t]
+RabinKarp's \citep{karp1987} slowness can easily be attributed to both its O(mn) complexity as well as its constant recalculation of the input hash. The RabinKarp algorithm works by maintaining a hash of the rule and calculating a hash on a sliding window of the input. The theory is that the comparison between the hashes is faster than that of the entire rule with the sliding window each time.
+
+NotSoNaive's \citep{hancart1993} slowness is surprising at first. It performs worse than the Naive algorithm when it was designed as an improvement on it. The NotSoNaive algorithm attempts to improve upon the Naive algorithm by adding a check to see if the input ahead shows signs of matching the rule; this extra step seems to cause the speed decrease when compared to Naive. Figure \ref{table-algorithmspeed} may make you may think that the mean processing time for NotSoNaive was heavily influenced by the maximum speed (that is to say that that maximum value is an outlier. Table \ref{table-algorithmspeed}) but by checking the median processing time - again in \ref{table-algorithmspeed} - it is clear that the entire set of results is shifted towards a longer processing time.
+
+\subsubsection{Do Some Algorithms Perform Differently Depending on the Input Length?}
+
+Figure \ref{figure-speedvslength} shows a scatter plot of mean input processing time versus packet length. This plot shows processing times for all algorithms. Note that the vertical axis has been plotted with a logarithmic scale. From the plot it is clear that there is an upward trend of processing time as the input length increases. This is expected as every algorithm in Table \ref{table-algorithms} has an algorithmic complexity related to the length of the input.
+
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=0.85\textwidth]{images/scatter_mean_time_vs_input_length_pcap}
     \caption{Input processing speeds vs input length for \textit{Dataset A}.}
     \label{figure-speedvslength}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[!htb]
   \centering
   \begin{subfigure}[b]{0.45\textwidth}
       \includegraphics[width=\textwidth]{images/scatter_mean_vs_input_length_Horspool}
+      \caption{Horspool}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
       \includegraphics[width=\textwidth]{images/scatter_mean_vs_input_length_QuickSearch}
+      \caption{QuickSearch}
   \end{subfigure}
   ~
   \begin{subfigure}[b]{0.45\textwidth}
       \includegraphics[width=\textwidth]{images/scatter_mean_vs_input_length_NotSoNaive}
+      \caption{NotSoNaive}
   \end{subfigure}
   \begin{subfigure}[b]{0.45\textwidth}
       \includegraphics[width=\textwidth]{images/scatter_mean_vs_input_length_RabinKarp}
+      \caption{RabinKarp}
   \end{subfigure}
-  \caption{}
+  \caption{Mean processing times versus input length for the Horspool, QuickSearch, NotSoNaive, and RabinKarp algorithms for \textit{Dataset A}.}
+  \label{figure-individualalgorithmsvslength}
 \end{figure}
 
 
-Algorithms best suited to deep packet inspection would be expected to perform better for smaller input lengths and the performance at input lengths larger than the maximum length of a packet would not matter. Algorithms with a bounded maximum processing time would be especially enticing to a deep packet inspection system implementor as it could guarantee a minimum throughput.
+Algorithms best suited to deep packet inspection would be expected to perform better for smaller input lengths and the performance at input lengths larger than the maximum length of a packet would not matter. Algorithms with a bounded maximum processing time would be especially enticing to a deep packet inspection system implementor as it could guarantee a minimum throughput. 
 
-\subsection{Which Algorithms Have the Least Fluctuating Processing Times?}
+Figure \ref{figure-individualalgorithmsvslength} shows similar graphs to Figure \ref{figure-speedvslength} but this time just the two fastest and two slowest algorithms were chosen.
+
+\subsubsection{Which Algorithms Have the Least Fluctuating Processing Times?}
 
 It is important that algorithms have consistent performance. Algorithms that have highly fluctuating processing speeds lead to unpredictable processing times and unwanted slowdowns of realtime packet inspection.
 
-Figure \ref{figure-standarddeviation} shows the standard deviations of each of the algorithms for \textit{Dataset A}. Most algorithms appear to have relatively low fluctuation on their processing times whilst some are a bit higher. The Horspool \citep{horspool1980} algorithm appears to have a very low standard deviation which, combined with its speed shown in Table \ref{table-algorithmspeed}, makes it a very strong packet processing algorithm.
+Figure \ref{figure-standarddeviation} shows the standard deviations of the mean processing time for each packet each of the algorithms for \textit{Dataset A}. Most algorithms appear to have relatively low fluctuation on their processing times whilst some are a bit higher. The Horspool \citep{horspool1980} algorithm appears to have a very low standard deviation which, combined with its speed shown in Table \ref{table-algorithmspeed}, makes it a very strong packet processing algorithm compared to the other algorithms.
 
-Another point of interest in Figure \ref{figure-standarddeviation} is that QuickSeach has a notably higher standard deviation than Horspool. It may not be all that well suited to packet inspection as a result.
+Interestingly in Figure \ref{figure-standarddeviation}, QuickSeach has a notably higher standard deviation than Horspool. It may not be all that well suited to packet inspection as a result.
 
 \begin{figure}[hbt]
   \includegraphics[width=\textwidth]{images/bar_graph_algorithm_standard_deviation_pcap}
@@ -256,16 +332,16 @@ Another point of interest in Figure \ref{figure-standarddeviation} is that Quick
 \end{figure}
 
 
-\subsection{Real World Packet Processing Speeds}
+\subsubsection{Real World Packet Processing Speeds}
 
 For the packet data, most algorithms have a mean packet processing speed of anywhere between 0.1 and 0.2 milliseconds.
 
-The average processing speed of about 0.15ms (Table \ref{table-algorithmspeed}) as well as an average packet length of about 110 bytes (Table \ref{table-inputsummary}) means that a rough line speed of 6 megabits per second is achievable. This speed is obviously much less than what would be required of a modern Deep Packet Inspection system. The goal of this research is to develop an understand of the algorithms' relative speed.
+The average processing speed of about 0.15ms (Table \ref{table-algorithmspeed}) as well as an average packet length of about 110 bytes (Table \ref{table-inputsummary}) means that a rough line speed of around 6 megabits per second is achievable. This speed is obviously much less than what would be required of a modern Deep Packet Inspection system - it is a few orders of magnitude smaller than what would be required. This research is not that concerned with the absolute speeds of each of these algorithms but their speeds when compared with each other. 
 
 \section{Conclusion}
 
 Of the original algorithms chosen to test, Horspool \citep{horspool1980} seems to perform best when it comes to packet analysis.
-Although software-based deep packet inspection is not as popular as its hardware counterpart, it does provide an easier-to-scale environment that can better cope with the fluctuations of periodic network load.
+Although software-based deep packet inspection is not as popular as its hardware counterpart, it does provide an easier-to-scale environment that can better cope with the fluctuations of periodic network load. Bootstrapping a software-based packet inspection system could be done with any consumer-grade computer equipment without the need to purchase expensive hardware.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
